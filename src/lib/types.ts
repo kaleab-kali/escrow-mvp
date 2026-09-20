@@ -1,76 +1,37 @@
-export type RoleId =
-  | "buyer"
-  | "seller"
-  | "marketplace"
-  | "verifier"
-  | "bank"
-  | "operator"
-  | "regulator"
-  | "mediator";
+export type Role = "buyer" | "seller" | "verifier" | "mediator" | "operator";
 
-export type SectorId =
+export type Sector =
   | "real_estate"
   | "ecommerce"
   | "scholarship"
   | "travel"
   | "freelancer";
 
-export type EscrowStatus =
+export type DealStatus =
   | "draft"
-  | "pending_funding"
+  | "pending_acceptance"
+  | "awaiting_funds"
   | "funded"
   | "in_progress"
-  | "partially_released"
+  | "pending_verification"
+  | "pending_release"
   | "disputed"
   | "released"
   | "refunded"
-  | "closed";
+  | "cancelled";
 
 export type MilestoneStatus =
   | "pending"
-  | "submitted"
-  | "verified"
-  | "rejected"
-  | "released";
-
-export type FundingMethod = "bank_transfer" | "mobile_money";
-
-export type AuditAction =
-  | "created"
   | "funded"
-  | "evidence_submitted"
-  | "milestone_verified"
-  | "milestone_rejected"
-  | "partial_release"
-  | "full_release"
-  | "refund"
-  | "dispute_opened"
-  | "dispute_resolved"
-  | "closed"
-  | "note";
+  | "completed"
+  | "released"
+  | "refunded";
 
-export interface Role {
-  id: RoleId;
-  label: string;
-  labelAm: string;
-  description: string;
-  color: string;
-}
-
-export interface Sector {
-  id: SectorId;
-  label: string;
-  labelAm: string;
-  description: string;
-  icon: string;
-  feeBps: number; // platform fee in basis points (e.g. 150 = 1.5%)
-  defaultMilestones: { title: string; percent: number; description: string }[];
-}
-
-export interface Party {
+export interface User {
   id: string;
   name: string;
-  role: RoleId;
+  email: string;
+  role: Role;
   phone?: string;
   city?: string;
 }
@@ -78,93 +39,139 @@ export interface Party {
 export interface Milestone {
   id: string;
   title: string;
-  description: string;
-  percent: number;
   amountEtb: number;
   status: MilestoneStatus;
-  evidenceNote?: string;
-  evidenceAt?: string;
-  verifiedBy?: string;
-  verifiedAt?: string;
-  releasedAt?: string;
-  rejectionReason?: string;
+  dueDate?: string;
+  completedAt?: string;
 }
 
-export interface LedgerEntry {
+export interface AuditEntry {
   id: string;
+  dealId: string;
   at: string;
-  type: "deposit" | "hold" | "release" | "fee" | "refund";
-  amountEtb: number;
-  balanceAfterEtb: number;
-  note: string;
-  bankRef?: string;
-}
-
-export interface AuditEvent {
-  id: string;
-  at: string;
-  action: AuditAction;
-  actorRole: RoleId | "system";
+  actorId: string;
   actorName: string;
-  detail: string;
+  action: string;
+  detail?: string;
 }
 
-export interface Dispute {
+export interface Deal {
   id: string;
-  openedAt: string;
-  openedBy: RoleId;
-  reason: string;
-  status: "open" | "resolved";
-  resolution?: string;
-  resolvedAt?: string;
-  resolvedBy?: RoleId;
-  outcome?: "release_to_seller" | "refund_to_buyer" | "split";
-  splitBuyerPercent?: number;
-}
-
-export interface EscrowDeal {
-  id: string;
-  reference: string;
-  sector: SectorId;
   title: string;
-  description: string;
-  status: EscrowStatus;
+  sector: Sector;
+  status: DealStatus;
   amountEtb: number;
-  currency: "ETB";
-  feeBps: number;
   feeEtb: number;
-  heldEtb: number;
-  releasedEtb: number;
-  refundedEtb: number;
-  buyer: Party;
-  seller: Party;
-  bankName: string;
-  fundingMethod?: FundingMethod;
-  fundedAt?: string;
+  currency: "ETB";
+  buyerId: string;
+  sellerId: string;
+  verifierId?: string;
+  mediatorId?: string;
+  description: string;
+  location?: string;
+  milestones: Milestone[];
   createdAt: string;
   updatedAt: string;
-  closedAt?: string;
-  milestones: Milestone[];
-  ledger: LedgerEntry[];
-  audit: AuditEvent[];
-  dispute?: Dispute;
-  location: string;
-  inspectionDays?: number;
+  fundedAt?: string;
+  releasedAt?: string;
+  disputeReason?: string;
+  partnerApiKeyId?: string;
 }
 
-export interface AppState {
-  version: number;
-  seededAt: string;
-  deals: EscrowDeal[];
+export interface ApiKey {
+  id: string;
+  name: string;
+  keyPrefix: string;
+  fullKey: string;
+  partnerName: string;
+  createdAt: string;
+  lastUsedAt?: string;
+  requests30d: number;
+  active: boolean;
 }
 
-export interface CreateDealInput {
-  sector: SectorId;
-  title: string;
-  description: string;
+export interface WebhookEndpoint {
+  id: string;
+  url: string;
+  events: string[];
+  active: boolean;
+  partnerName: string;
+  createdAt: string;
+  lastDeliveryAt?: string;
+  successRate: number;
+}
+
+export interface EodPack {
+  id: string;
+  bankName: string;
+  date: string;
+  generatedAt: string;
+  generatedBy: string;
+  custodyBalanceEtb: number;
+  inflowEtb: number;
+  outflowEtb: number;
+  dealCount: number;
+  status: "generated" | "archived";
+}
+
+export interface ApiUsageLog {
+  id: string;
+  apiKeyId: string;
+  partnerName: string;
+  endpoint: string;
+  method: string;
+  status: number;
+  at: string;
+}
+
+export interface SettlementRow {
+  id: string;
+  dealId: string;
+  dealTitle: string;
+  type: "release" | "refund" | "fee";
   amountEtb: number;
-  buyerName: string;
-  sellerName: string;
-  location?: string;
-  fundingMethod?: FundingMethod;
+  counterparty: string;
+  settledAt: string;
+  bankRef: string;
 }
+
+export interface StoreData {
+  users: User[];
+  deals: Deal[];
+  audit: AuditEntry[];
+  apiKeys: ApiKey[];
+  webhooks: WebhookEndpoint[];
+  eodPacks: EodPack[];
+  apiUsage: ApiUsageLog[];
+  settlements: SettlementRow[];
+}
+
+export const SECTOR_LABELS: Record<Sector, string> = {
+  real_estate: "Real Estate",
+  ecommerce: "E-commerce",
+  scholarship: "Scholarship",
+  travel: "Travel",
+  freelancer: "Freelancers",
+};
+
+export const STATUS_LABELS: Record<DealStatus, string> = {
+  draft: "Draft",
+  pending_acceptance: "Pending Acceptance",
+  awaiting_funds: "Awaiting Funds",
+  funded: "Funded",
+  in_progress: "In Progress",
+  pending_verification: "Pending Verification",
+  pending_release: "Pending Release",
+  disputed: "Disputed",
+  released: "Released",
+  refunded: "Refunded",
+  cancelled: "Cancelled",
+};
+
+export const ROLE_LABELS: Record<Role, string> = {
+  buyer: "Buyer",
+  seller: "Seller",
+  verifier: "Verifier (RE)",
+  mediator: "Mediator",
+  operator: "Operator",
+};

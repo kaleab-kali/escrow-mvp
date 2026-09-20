@@ -1,90 +1,68 @@
-# EscrowET — Escrow-as-a-Service Demo MVP (Ethiopia)
+# EscrowET
 
-**DEMO MVP — funds are simulated; not a licensed product.**
+Trusted ETB escrow between buyers and sellers in Ethiopia — real estate, e-commerce, scholarships, travel, and freelancers. Marketplaces integrate via API only (no marketplace storefront). Operators generate EOD custody packs for banks (no bank interactive dashboard, no NBE console).
 
-Trust intermediary for informal / low-trust markets in Ethiopia: buyer deposits into escrow, seller delivers, funds release when conditions are met. A **partner bank** holds segregated funds (simulated). The **platform never owns the money**.
+## Stack
 
-Built for demos to sector clients, banks, and the National Bank of Ethiopia (NBE).
+- Next.js 16 (App Router) · React 19 · Tailwind CSS v4
+- In-memory `globalThis` store + Server Actions (Vercel serverless friendly)
+- Demo auth via HTTP-only session cookie (one-click role login)
 
-## Live demo (GitHub Pages)
-
-**https://kaleab-kali.github.io/escrow-mvp/**
-
-Static hosting: all deal state and the demo role live in **browser `localStorage`** (not a server database). Use the Operator dashboard **Reset demo data** to re-seed.
-
-## Quick start (local)
+## Local run
 
 ```bash
-cd escrow-mvp
 npm install
 npm run dev
 ```
 
-Open **http://localhost:3000**.
-
-| Script | Purpose |
-|--------|---------|
-| `npm run dev` | Development server (port 3000) — no `basePath` |
-| `npm run build` | Production build (Node server / `.next`) |
-| `GITHUB_PAGES=true npm run build` | Static export to `out/` with `basePath` `/escrow-mvp` |
-| `npm run start` | Serve production Node build |
-| `npm run seed` | Prints how to reset localStorage demo data |
-
-## GitHub Pages build
+Open [http://localhost:3000](http://localhost:3000) and pick a demo role (Buyer, Seller, Verifier, Mediator, Operator).
 
 ```bash
-GITHUB_PAGES=true npm run build
-# → out/index.html and static assets under /escrow-mvp/
+npm run build
+npm start
 ```
 
-CI: `.github/workflows/deploy-pages.yml` builds with `GITHUB_PAGES=true` on push to `main` and deploys `out/` via `actions/upload-pages-artifact` + `actions/deploy-pages`.
+## Demo roles & flows
 
-Enable **Settings → Pages → Source: GitHub Actions** on the repo.
+| Role | Entry | What to try |
+|------|-------|-------------|
+| Buyer | `/login` → Buyer | Fund awaiting deals, release pending releases, open disputes |
+| Seller | Seller | Accept pending deals, start work, mark milestones complete |
+| Verifier | Verifier | Approve/reject RE title checks in `/verify` |
+| Mediator | Mediator | Resolve disputes on `/mediate` (release or refund) |
+| Operator | Operator | KPIs, EOD bank packs, settlements, audit CSV, API usage |
 
-## 10-minute demo script
+**Happy path:** create deal → seller accepts → buyer funds → seller works / milestones → (RE: verify) → release.
 
-### 0. Setup
-1. Open the Pages URL (or `npm run dev`).
-2. Note the amber demo banner (EN + Amharic).
-3. Point out: fictional Ethiopian banks, ETB, Addis Ababa context.
+## Key routes
 
-### 1. Informal / e-commerce sale
-1. Home → **Pick Buyer**.
-2. Open a funded e-commerce deal → Seller submits evidence → Buyer verifies → Bank releases (ledger + fee).
+- `/` — landing + role entry
+- `/login` — demo sign-in
+- `/dashboard` — role home (buyers/sellers)
+- `/deals`, `/deals/new`, `/deals/[id]` — deal list, multi-step create, workspace + audit
+- `/verify` — RE verification queue
+- `/mediate` — dispute mediation
+- `/operator` — ops KPIs & pipeline
+- `/operator/eod` — EOD bank custody packs (7-day + archive)
+- `/operator/settlements` — settlement register
+- `/operator/audit` — audit log + CSV export
+- `/operator/api-usage` — partner API traffic
+- `/operator/disputes` — dispute overview
+- `/partners` — API keys, webhooks, usage (Developer / Partners)
 
-### 2. Real-estate milestones
-1. Open the real-estate deal (partially released).
-2. Verifier reviews submitted evidence → Bank releases next tranche.
+## Vercel deploy
 
-### 3. Bank / NBE / dispute
-1. **Bank** dashboard — custody totals and release queue.
-2. **Regulator** — read-only exposure by bank.
-3. **Mediator** — resolve the disputed scholarship deal.
+1. Import the repo in Vercel
+2. Framework preset: **Next.js**
+3. Root directory: `/` (project root — do not set a subfolder)
+4. Build command: `npm run build` (default)
+5. Output: leave default (no static export, no `basePath`)
 
-## Roles (one-click, no real auth)
+No environment variables required for the demo. Note: the in-memory store resets per serverless isolate — seed data reloads on cold start.
 
-| Role | Route |
-|------|-------|
-| Buyer | `/dashboard/buyer` |
-| Seller | `/dashboard/seller` |
-| Marketplace | `/dashboard/marketplace` |
-| Verifier | `/dashboard/verifier` |
-| Bank | `/dashboard/bank` |
-| Operator | `/dashboard/operator` |
-| Regulator (NBE) | `/dashboard/regulator` |
-| Mediator | `/dashboard/mediator` |
+## Product boundaries
 
-## Architecture
-
-- **Next.js 14** App Router + TypeScript + Tailwind
-- **Client store** (`src/lib/store.tsx`) + **localStorage** — works on static GitHub Pages
-- Seeded deals in `src/lib/seed.ts` (loaded when storage is empty)
-- Amharic on key nav/labels (demo banner, header, role/sector labels)
-- Static deal detail: `/deals/view?id=…` (query param, not a dynamic server route)
-
-## Demo limitations
-
-- No real payments, Telebirr, or bank APIs
-- No real KYC / NBE licence
-- Data is per-browser localStorage (not multi-user sync)
-- Role switch is a demo convenience, not authentication
+- Direct buyer↔seller escrow (ETB)
+- Partners = API keys / webhooks / usage only
+- Banks = EOD custody report packs only (operator-generated)
+- No NBE dashboard, no bank interactive UI, no marketplace admin

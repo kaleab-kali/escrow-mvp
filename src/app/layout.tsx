@@ -1,43 +1,31 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { DemoBanner } from "@/components/DemoBanner";
-import { Header } from "@/components/Header";
-import { EscrowProvider } from "@/lib/store";
-import { StoreGate } from "@/components/StoreGate";
 
-const inter = Inter({ subsets: ["latin"] });
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
 
 export const metadata: Metadata = {
-  title: "EscrowET — Escrow-as-a-Service (Demo MVP)",
+  title: "EscrowET — Trusted ETB escrow",
   description:
-    "Trust intermediary for Ethiopia informal and low-trust markets. Demo only — funds simulated.",
+    "Buyer↔seller escrow platform for Ethiopia. Real estate, commerce, travel, scholarships, freelancers. API for marketplaces.",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} antialiased`}>
-        <EscrowProvider>
-          <DemoBanner />
-          <Header />
-          <main className="mx-auto max-w-6xl px-4 py-6 sm:py-8">
-            <StoreGate>{children}</StoreGate>
-          </main>
-          <footer className="border-t border-slate-200 mt-12">
-            <div className="mx-auto max-w-6xl px-4 py-6 text-xs text-slate-500 flex flex-col sm:flex-row gap-2 justify-between">
-              <span>
-                EscrowET Demo MVP · Partner bank holds segregated funds (simulated) ·
-                Platform never owns the money
-              </span>
-              <span>Addis Ababa · For sector clients, banks & NBE demos</span>
-            </div>
-          </footer>
-        </EscrowProvider>
+    <html
+      lang="en"
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+    >
+      <body className="min-h-full flex flex-col bg-zinc-50 text-zinc-900">
+        {children}
       </body>
     </html>
   );
