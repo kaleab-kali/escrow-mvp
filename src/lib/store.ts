@@ -12,7 +12,7 @@ import type {
   WebhookEndpoint,
 } from "./types";
 
-const GLOBAL_KEY = "__escrowet_store_v1__";
+const GLOBAL_KEY = "__escrowet_store_v2__";
 
 type GlobalStore = typeof globalThis & {
   [GLOBAL_KEY]?: StoreData;
@@ -33,37 +33,104 @@ function dateOnlyDaysAgo(n: number): string {
 
 function seedUsers(): User[] {
   return [
+    // —— Real estate ——
     {
       id: "user-buyer-1",
       name: "Hanna Bekele",
-      email: "hanna.buyer@example.et",
+      email: "hanna.re@example.et",
       role: "buyer",
       phone: "+251911000001",
       city: "Addis Ababa",
-    },
-    {
-      id: "user-buyer-2",
-      name: "Yonas Tadesse",
-      email: "yonas.buyer@example.et",
-      role: "buyer",
-      phone: "+251911000002",
-      city: "Bahir Dar",
+      sector: "real_estate",
     },
     {
       id: "user-seller-1",
       name: "Abel Properties PLC",
-      email: "abel.seller@example.et",
+      email: "abel.properties@example.et",
       role: "seller",
       phone: "+251911000010",
       city: "Addis Ababa",
+      sector: "real_estate",
+    },
+    {
+      id: "user-verifier-1",
+      name: "Meron Assefa",
+      email: "meron.verifier@example.et",
+      role: "verifier",
+      phone: "+251911000020",
+      city: "Addis Ababa",
+      sector: "real_estate",
+    },
+
+    // —— E-commerce ——
+    {
+      id: "user-ecom-buyer",
+      name: "Sara Mekonnen",
+      email: "sara.ecom@example.et",
+      role: "buyer",
+      phone: "+251911000003",
+      city: "Addis Ababa",
+      sector: "ecommerce",
     },
     {
       id: "user-seller-2",
       name: "Selam Craft Store",
-      email: "selam.seller@example.et",
+      email: "selam.craft@example.et",
       role: "seller",
       phone: "+251911000011",
       city: "Hawassa",
+      sector: "ecommerce",
+    },
+
+    // —— Scholarship ——
+    {
+      id: "user-schol-buyer",
+      name: "Dr. Tigist Haile",
+      email: "tigist.sponsor@example.et",
+      role: "buyer",
+      phone: "+251911000004",
+      city: "Addis Ababa",
+      sector: "scholarship",
+    },
+    {
+      id: "user-schol-seller",
+      name: "Horizon Study Abroad",
+      email: "horizon.agency@example.et",
+      role: "seller",
+      phone: "+251911000013",
+      city: "Addis Ababa",
+      sector: "scholarship",
+    },
+
+    // —— Travel ——
+    {
+      id: "user-buyer-2",
+      name: "Yonas Tadesse",
+      email: "yonas.travel@example.et",
+      role: "buyer",
+      phone: "+251911000002",
+      city: "Bahir Dar",
+      sector: "travel",
+    },
+    {
+      id: "user-travel-seller",
+      name: "Ethio Highlands Tours",
+      email: "highlands.tours@example.et",
+      role: "seller",
+      phone: "+251911000014",
+      city: "Addis Ababa",
+      sector: "travel",
+    },
+
+    // —— Freelancer ——
+    {
+      id: "user-freelance-buyer",
+      name: "Bethlehem Trading PLC",
+      email: "bethlehem.client@example.et",
+      role: "buyer",
+      phone: "+251911000005",
+      city: "Addis Ababa",
+      sector: "freelancer",
     },
     {
       id: "user-seller-3",
@@ -72,18 +139,13 @@ function seedUsers(): User[] {
       role: "seller",
       phone: "+251911000012",
       city: "Addis Ababa",
+      sector: "freelancer",
     },
-    {
-      id: "user-verifier-1",
-      name: "Meron Assefa (RE Verifier)",
-      email: "meron.verifier@example.et",
-      role: "verifier",
-      phone: "+251911000020",
-      city: "Addis Ababa",
-    },
+
+    // —— Cross-cutting ——
     {
       id: "user-mediator-1",
-      name: "Dawit Negash (Mediator)",
+      name: "Dawit Negash",
       email: "dawit.mediator@example.et",
       role: "mediator",
       phone: "+251911000030",
@@ -122,6 +184,8 @@ function audit(
 function seedDeals(): { deals: Deal[]; audit: AuditEntry[] } {
   const auditLog: AuditEntry[] = [];
   const deals: Deal[] = [];
+
+  // ═══════════════ REAL ESTATE (Hanna + Abel + Meron) ═══════════════
 
   const d1: Deal = {
     id: "deal-re-bole",
@@ -168,13 +232,7 @@ function seedDeals(): { deals: Deal[]; audit: AuditEntry[] } {
   deals.push(d1);
   auditLog.push(
     audit(d1.id, "user-buyer-1", "Hanna Bekele", "deal.created", daysAgo(14)),
-    audit(
-      d1.id,
-      "user-seller-1",
-      "Abel Properties PLC",
-      "deal.accepted",
-      daysAgo(13)
-    ),
+    audit(d1.id, "user-seller-1", "Abel Properties PLC", "deal.accepted", daysAgo(13)),
     audit(
       d1.id,
       "user-buyer-1",
@@ -192,6 +250,67 @@ function seedDeals(): { deals: Deal[]; audit: AuditEntry[] } {
     )
   );
 
+  const d6: Deal = {
+    id: "deal-re-cmc",
+    title: "CMC land plot reservation",
+    sector: "real_estate",
+    status: "released",
+    amountEtb: 2_100_000,
+    feeEtb: feeForAmount(2_100_000),
+    currency: "ETB",
+    buyerId: "user-buyer-1",
+    sellerId: "user-seller-1",
+    verifierId: "user-verifier-1",
+    description: "Plot reservation completed and released after cadastral check.",
+    location: "CMC, Addis Ababa",
+    milestones: [
+      {
+        id: "m6-1",
+        title: "Deposit secured",
+        amountEtb: 420_000,
+        status: "released",
+        dueDate: dateOnlyDaysAgo(35),
+        completedAt: daysAgo(33),
+      },
+      {
+        id: "m6-2",
+        title: "Title verification",
+        amountEtb: 1_260_000,
+        status: "released",
+        dueDate: dateOnlyDaysAgo(28),
+        completedAt: daysAgo(24),
+      },
+      {
+        id: "m6-3",
+        title: "Handover & keys",
+        amountEtb: 420_000,
+        status: "released",
+        dueDate: dateOnlyDaysAgo(25),
+        completedAt: daysAgo(22),
+      },
+    ],
+    createdAt: daysAgo(40),
+    updatedAt: daysAgo(22),
+    fundedAt: daysAgo(35),
+    releasedAt: daysAgo(22),
+  };
+  deals.push(d6);
+  auditLog.push(
+    audit(d6.id, "user-buyer-1", "Hanna Bekele", "deal.created", daysAgo(40)),
+    audit(d6.id, "user-seller-1", "Abel Properties PLC", "deal.accepted", daysAgo(39)),
+    audit(d6.id, "user-buyer-1", "Hanna Bekele", "funds.received", daysAgo(35)),
+    audit(
+      d6.id,
+      "user-verifier-1",
+      "Meron Assefa",
+      "verification.approved",
+      daysAgo(23)
+    ),
+    audit(d6.id, "user-operator-1", "EscrowET Ops", "funds.released", daysAgo(22))
+  );
+
+  // ═══════════════ E-COMMERCE (Sara + Selam Craft Store) ═══════════════
+
   const d2: Deal = {
     id: "deal-ecom-bulk",
     title: "Bulk coffee export sample order",
@@ -200,7 +319,7 @@ function seedDeals(): { deals: Deal[]; audit: AuditEntry[] } {
     amountEtb: 285_000,
     feeEtb: feeForAmount(285_000),
     currency: "ETB",
-    buyerId: "user-buyer-2",
+    buyerId: "user-ecom-buyer",
     sellerId: "user-seller-2",
     description:
       "500kg specialty coffee samples for EU buyer QC. Escrow until inspection photos approved.",
@@ -208,14 +327,14 @@ function seedDeals(): { deals: Deal[]; audit: AuditEntry[] } {
     milestones: [
       {
         id: "m2-1",
-        title: "Goods packed & photos",
+        title: "Pack & ship",
         amountEtb: 142_500,
         status: "pending",
         dueDate: dateOnlyDaysAgo(-3),
       },
       {
         id: "m2-2",
-        title: "Delivery confirmed",
+        title: "Delivery / inspection",
         amountEtb: 142_500,
         status: "pending",
         dueDate: dateOnlyDaysAgo(-10),
@@ -226,83 +345,206 @@ function seedDeals(): { deals: Deal[]; audit: AuditEntry[] } {
   };
   deals.push(d2);
   auditLog.push(
-    audit(d2.id, "user-buyer-2", "Yonas Tadesse", "deal.created", daysAgo(3)),
+    audit(d2.id, "user-ecom-buyer", "Sara Mekonnen", "deal.created", daysAgo(3)),
+    audit(d2.id, "user-seller-2", "Selam Craft Store", "deal.accepted", daysAgo(2))
+  );
+
+  const d7: Deal = {
+    id: "deal-ecom-phones",
+    title: "Wholesale phone accessories lot",
+    sector: "ecommerce",
+    status: "pending_acceptance",
+    amountEtb: 64_000,
+    feeEtb: feeForAmount(64_000),
+    currency: "ETB",
+    buyerId: "user-ecom-buyer",
+    sellerId: "user-seller-2",
+    description: "Awaiting merchant acceptance of escrow terms for accessories lot.",
+    location: "Merkato",
+    milestones: [
+      {
+        id: "m7-1",
+        title: "Pack & ship",
+        amountEtb: 32_000,
+        status: "pending",
+        dueDate: dateOnlyDaysAgo(-3),
+      },
+      {
+        id: "m7-2",
+        title: "Delivery / inspection",
+        amountEtb: 32_000,
+        status: "pending",
+        dueDate: dateOnlyDaysAgo(-7),
+      },
+    ],
+    createdAt: daysAgo(1, 16),
+    updatedAt: daysAgo(1, 16),
+  };
+  deals.push(d7);
+  auditLog.push(
+    audit(d7.id, "user-ecom-buyer", "Sara Mekonnen", "deal.created", daysAgo(1, 16))
+  );
+
+  const d9: Deal = {
+    id: "deal-ecom-textiles",
+    title: "Handloom textiles wholesale lot",
+    sector: "ecommerce",
+    status: "funded",
+    amountEtb: 175_000,
+    feeEtb: feeForAmount(175_000),
+    currency: "ETB",
+    buyerId: "user-ecom-buyer",
+    sellerId: "user-seller-2",
+    description:
+      "Funded escrow for 200 units of handloom textiles. Merchant to pack and ship with photos.",
+    location: "Hawassa → Addis",
+    milestones: [
+      {
+        id: "m9-1",
+        title: "Pack & ship",
+        amountEtb: 100_000,
+        status: "funded",
+        dueDate: dateOnlyDaysAgo(-4),
+      },
+      {
+        id: "m9-2",
+        title: "Delivery / inspection",
+        amountEtb: 75_000,
+        status: "pending",
+        dueDate: dateOnlyDaysAgo(-12),
+      },
+    ],
+    createdAt: daysAgo(6),
+    updatedAt: daysAgo(1, 11),
+    fundedAt: daysAgo(1, 11),
+  };
+  deals.push(d9);
+  auditLog.push(
+    audit(d9.id, "user-ecom-buyer", "Sara Mekonnen", "deal.created", daysAgo(6)),
+    audit(d9.id, "user-seller-2", "Selam Craft Store", "deal.accepted", daysAgo(5)),
     audit(
-      d2.id,
-      "user-seller-2",
-      "Selam Craft Store",
-      "deal.accepted",
-      daysAgo(2)
+      d9.id,
+      "user-ecom-buyer",
+      "Sara Mekonnen",
+      "funds.received",
+      daysAgo(1, 11),
+      "175,000 ETB into custody"
     )
   );
 
-  const d3: Deal = {
-    id: "deal-freelance-erp",
-    title: "ERP module delivery — Phase 2",
-    sector: "freelancer",
-    status: "in_progress",
-    amountEtb: 420_000,
-    feeEtb: feeForAmount(420_000),
+  // ═══════════════ SCHOLARSHIP (Tigist + Horizon Study Abroad) ═══════════════
+
+  const d5: Deal = {
+    id: "deal-scholarship-au",
+    title: "AU scholarship tuition remittance",
+    sector: "scholarship",
+    status: "pending_release",
+    amountEtb: 98_500,
+    feeEtb: feeForAmount(98_500),
     currency: "ETB",
-    buyerId: "user-buyer-1",
-    sellerId: "user-seller-3",
+    buyerId: "user-schol-buyer",
+    sellerId: "user-schol-seller",
     description:
-      "Custom inventory module for SME client. Milestone-based release on UAT sign-off.",
-    location: "Remote / Addis Ababa",
+      "Sponsor remits semester tuition via escrow after enrollment verification letter from the agency.",
+    location: "Addis Ababa University",
     milestones: [
       {
-        id: "m3-1",
-        title: "Design & API contract",
-        amountEtb: 120_000,
-        status: "released",
-        dueDate: dateOnlyDaysAgo(20),
-        completedAt: daysAgo(18),
-      },
-      {
-        id: "m3-2",
-        title: "Implementation",
-        amountEtb: 200_000,
-        status: "funded",
+        id: "m5-1",
+        title: "Enrollment / visa verified",
+        amountEtb: 29_550,
+        status: "completed",
         dueDate: dateOnlyDaysAgo(5),
+        completedAt: daysAgo(4),
       },
       {
-        id: "m3-3",
-        title: "UAT & handover",
-        amountEtb: 100_000,
-        status: "pending",
-        dueDate: dateOnlyDaysAgo(-14),
+        id: "m5-2",
+        title: "Tuition release",
+        amountEtb: 68_950,
+        status: "completed",
+        dueDate: dateOnlyDaysAgo(1),
+        completedAt: daysAgo(1, 11),
       },
     ],
-    createdAt: daysAgo(30),
-    updatedAt: daysAgo(4),
-    fundedAt: daysAgo(28),
+    createdAt: daysAgo(20),
+    updatedAt: daysAgo(1, 11),
+    fundedAt: daysAgo(15),
   };
-  deals.push(d3);
+  deals.push(d5);
   auditLog.push(
-    audit(d3.id, "user-buyer-1", "Hanna Bekele", "deal.created", daysAgo(30)),
+    audit(d5.id, "user-schol-buyer", "Dr. Tigist Haile", "deal.created", daysAgo(20)),
     audit(
-      d3.id,
-      "user-seller-3",
-      "Kidus Freelance Studio",
+      d5.id,
+      "user-schol-seller",
+      "Horizon Study Abroad",
       "deal.accepted",
-      daysAgo(29)
+      daysAgo(19)
     ),
+    audit(d5.id, "user-schol-buyer", "Dr. Tigist Haile", "funds.received", daysAgo(15)),
     audit(
-      d3.id,
-      "user-buyer-1",
-      "Hanna Bekele",
-      "funds.received",
-      daysAgo(28)
-    ),
-    audit(
-      d3.id,
-      "user-buyer-1",
-      "Hanna Bekele",
-      "milestone.released",
-      daysAgo(18),
-      "Design milestone"
+      d5.id,
+      "user-schol-seller",
+      "Horizon Study Abroad",
+      "milestone.completed",
+      daysAgo(1, 11),
+      "Tuition docs ready for release"
     )
   );
+
+  const d10: Deal = {
+    id: "deal-scholarship-visa",
+    title: "UK master's visa & placement package",
+    sector: "scholarship",
+    status: "in_progress",
+    amountEtb: 185_000,
+    feeEtb: feeForAmount(185_000),
+    currency: "ETB",
+    buyerId: "user-schol-buyer",
+    sellerId: "user-schol-seller",
+    description:
+      "Agency handling CAS, visa filing, and first-term tuition hold for sponsored student.",
+    location: "Addis Ababa → Manchester",
+    milestones: [
+      {
+        id: "m10-1",
+        title: "Enrollment / visa verified",
+        amountEtb: 55_500,
+        status: "funded",
+        dueDate: dateOnlyDaysAgo(-5),
+      },
+      {
+        id: "m10-2",
+        title: "Tuition release",
+        amountEtb: 129_500,
+        status: "pending",
+        dueDate: dateOnlyDaysAgo(-30),
+      },
+    ],
+    createdAt: daysAgo(10),
+    updatedAt: daysAgo(3),
+    fundedAt: daysAgo(8),
+  };
+  deals.push(d10);
+  auditLog.push(
+    audit(d10.id, "user-schol-buyer", "Dr. Tigist Haile", "deal.created", daysAgo(10)),
+    audit(
+      d10.id,
+      "user-schol-seller",
+      "Horizon Study Abroad",
+      "deal.accepted",
+      daysAgo(9)
+    ),
+    audit(d10.id, "user-schol-buyer", "Dr. Tigist Haile", "funds.received", daysAgo(8)),
+    audit(
+      d10.id,
+      "user-schol-seller",
+      "Horizon Study Abroad",
+      "work.started",
+      daysAgo(3),
+      "Visa file opened"
+    )
+  );
+
+  // ═══════════════ TRAVEL (Yonas + Ethio Highlands Tours) ═══════════════
 
   const d4: Deal = {
     id: "deal-travel-lalibela",
@@ -313,7 +555,7 @@ function seedDeals(): { deals: Deal[]; audit: AuditEntry[] } {
     feeEtb: feeForAmount(156_000),
     currency: "ETB",
     buyerId: "user-buyer-2",
-    sellerId: "user-seller-2",
+    sellerId: "user-travel-seller",
     mediatorId: "user-mediator-1",
     description:
       "8-person cultural tour. Dispute opened after itinerary change without consent.",
@@ -345,18 +587,12 @@ function seedDeals(): { deals: Deal[]; audit: AuditEntry[] } {
     audit(d4.id, "user-buyer-2", "Yonas Tadesse", "deal.created", daysAgo(12)),
     audit(
       d4.id,
-      "user-seller-2",
-      "Selam Craft Store",
+      "user-travel-seller",
+      "Ethio Highlands Tours",
       "deal.accepted",
       daysAgo(11)
     ),
-    audit(
-      d4.id,
-      "user-buyer-2",
-      "Yonas Tadesse",
-      "funds.received",
-      daysAgo(9)
-    ),
+    audit(d4.id, "user-buyer-2", "Yonas Tadesse", "funds.received", daysAgo(9)),
     audit(
       d4.id,
       "user-buyer-2",
@@ -367,133 +603,124 @@ function seedDeals(): { deals: Deal[]; audit: AuditEntry[] } {
     )
   );
 
-  const d5: Deal = {
-    id: "deal-scholarship-au",
-    title: "AU scholarship tuition remittance",
-    sector: "scholarship",
-    status: "pending_release",
-    amountEtb: 98_500,
-    feeEtb: feeForAmount(98_500),
-    currency: "ETB",
-    buyerId: "user-buyer-1",
-    sellerId: "user-seller-1",
-    description:
-      "Sponsor remits semester tuition via escrow after enrollment verification letter.",
-    location: "Addis Ababa University",
-    milestones: [
-      {
-        id: "m5-1",
-        title: "Enrollment verified",
-        amountEtb: 98_500,
-        status: "completed",
-        dueDate: dateOnlyDaysAgo(1),
-        completedAt: daysAgo(1, 11),
-      },
-    ],
-    createdAt: daysAgo(20),
-    updatedAt: daysAgo(1, 11),
-    fundedAt: daysAgo(15),
-  };
-  deals.push(d5);
-  auditLog.push(
-    audit(d5.id, "user-buyer-1", "Hanna Bekele", "deal.created", daysAgo(20)),
-    audit(
-      d5.id,
-      "user-seller-1",
-      "Abel Properties PLC",
-      "deal.accepted",
-      daysAgo(19)
-    ),
-    audit(
-      d5.id,
-      "user-buyer-1",
-      "Hanna Bekele",
-      "funds.received",
-      daysAgo(15)
-    ),
-    audit(
-      d5.id,
-      "user-seller-1",
-      "Abel Properties PLC",
-      "milestone.completed",
-      daysAgo(1, 11)
-    )
-  );
-
-  const d6: Deal = {
-    id: "deal-re-cmc",
-    title: "CMC land plot reservation",
-    sector: "real_estate",
-    status: "released",
-    amountEtb: 2_100_000,
-    feeEtb: feeForAmount(2_100_000),
+  const d11: Deal = {
+    id: "deal-travel-simien",
+    title: "Simien Mountains trek — 5 days",
+    sector: "travel",
+    status: "awaiting_funds",
+    amountEtb: 89_000,
+    feeEtb: feeForAmount(89_000),
     currency: "ETB",
     buyerId: "user-buyer-2",
-    sellerId: "user-seller-1",
-    verifierId: "user-verifier-1",
-    description: "Plot reservation completed and released after cadastral check.",
-    location: "CMC, Addis Ababa",
+    sellerId: "user-travel-seller",
+    description:
+      "Guided trek with park permits and lodge nights. Buyer to fund after accepting itinerary.",
+    location: "Simien Mountains NP",
     milestones: [
       {
-        id: "m6-1",
-        title: "Full purchase",
-        amountEtb: 2_100_000,
-        status: "released",
-        dueDate: dateOnlyDaysAgo(25),
-        completedAt: daysAgo(22),
+        id: "m11-1",
+        title: "Booking confirmation",
+        amountEtb: 44_500,
+        status: "pending",
+        dueDate: dateOnlyDaysAgo(-4),
+      },
+      {
+        id: "m11-2",
+        title: "Trip completion",
+        amountEtb: 44_500,
+        status: "pending",
+        dueDate: dateOnlyDaysAgo(-14),
       },
     ],
-    createdAt: daysAgo(40),
-    updatedAt: daysAgo(22),
-    fundedAt: daysAgo(35),
-    releasedAt: daysAgo(22),
+    createdAt: daysAgo(4),
+    updatedAt: daysAgo(3),
   };
-  deals.push(d6);
+  deals.push(d11);
   auditLog.push(
-    audit(d6.id, "user-buyer-2", "Yonas Tadesse", "deal.created", daysAgo(40)),
+    audit(d11.id, "user-buyer-2", "Yonas Tadesse", "deal.created", daysAgo(4)),
     audit(
-      d6.id,
-      "user-verifier-1",
-      "Meron Assefa (RE Verifier)",
-      "verification.approved",
-      daysAgo(23)
-    ),
-    audit(
-      d6.id,
-      "user-operator-1",
-      "EscrowET Ops",
-      "funds.released",
-      daysAgo(22)
+      d11.id,
+      "user-travel-seller",
+      "Ethio Highlands Tours",
+      "deal.accepted",
+      daysAgo(3)
     )
   );
 
-  const d7: Deal = {
-    id: "deal-ecom-phones",
-    title: "Wholesale phone accessories lot",
-    sector: "ecommerce",
-    status: "pending_acceptance",
-    amountEtb: 64_000,
-    feeEtb: feeForAmount(64_000),
+  // ═══════════════ FREELANCER (Bethlehem + Kidus) ═══════════════
+
+  const d3: Deal = {
+    id: "deal-freelance-erp",
+    title: "ERP module delivery — Phase 2",
+    sector: "freelancer",
+    status: "in_progress",
+    amountEtb: 420_000,
+    feeEtb: feeForAmount(420_000),
     currency: "ETB",
-    buyerId: "user-buyer-1",
-    sellerId: "user-seller-2",
-    description: "Awaiting seller acceptance of escrow terms.",
-    location: "Merkato",
+    buyerId: "user-freelance-buyer",
+    sellerId: "user-seller-3",
+    description:
+      "Custom inventory module for SME client. Milestone-based release on UAT sign-off.",
+    location: "Remote / Addis Ababa",
     milestones: [
       {
-        id: "m7-1",
-        title: "Delivery",
-        amountEtb: 64_000,
+        id: "m3-1",
+        title: "Design & scope",
+        amountEtb: 120_000,
+        status: "released",
+        dueDate: dateOnlyDaysAgo(20),
+        completedAt: daysAgo(18),
+      },
+      {
+        id: "m3-2",
+        title: "Build / implementation",
+        amountEtb: 200_000,
+        status: "funded",
+        dueDate: dateOnlyDaysAgo(5),
+      },
+      {
+        id: "m3-3",
+        title: "UAT & handover",
+        amountEtb: 100_000,
         status: "pending",
-        dueDate: dateOnlyDaysAgo(-5),
+        dueDate: dateOnlyDaysAgo(-14),
       },
     ],
-    createdAt: daysAgo(1, 16),
-    updatedAt: daysAgo(1, 16),
+    createdAt: daysAgo(30),
+    updatedAt: daysAgo(4),
+    fundedAt: daysAgo(28),
   };
-  deals.push(d7);
+  deals.push(d3);
   auditLog.push(
-    audit(d7.id, "user-buyer-1", "Hanna Bekele", "deal.created", daysAgo(1, 16))
+    audit(
+      d3.id,
+      "user-freelance-buyer",
+      "Bethlehem Trading PLC",
+      "deal.created",
+      daysAgo(30)
+    ),
+    audit(
+      d3.id,
+      "user-seller-3",
+      "Kidus Freelance Studio",
+      "deal.accepted",
+      daysAgo(29)
+    ),
+    audit(
+      d3.id,
+      "user-freelance-buyer",
+      "Bethlehem Trading PLC",
+      "funds.received",
+      daysAgo(28)
+    ),
+    audit(
+      d3.id,
+      "user-freelance-buyer",
+      "Bethlehem Trading PLC",
+      "milestone.released",
+      daysAgo(18),
+      "Design milestone"
+    )
   );
 
   const d8: Deal = {
@@ -504,7 +731,7 @@ function seedDeals(): { deals: Deal[]; audit: AuditEntry[] } {
     amountEtb: 45_000,
     feeEtb: feeForAmount(45_000),
     currency: "ETB",
-    buyerId: "user-buyer-2",
+    buyerId: "user-freelance-buyer",
     sellerId: "user-seller-3",
     mediatorId: "user-mediator-1",
     description: "Refunded after mutual cancellation following scope dispute.",
@@ -512,10 +739,24 @@ function seedDeals(): { deals: Deal[]; audit: AuditEntry[] } {
     milestones: [
       {
         id: "m8-1",
-        title: "Full package",
-        amountEtb: 45_000,
+        title: "Design & scope",
+        amountEtb: 15_000,
+        status: "refunded",
+        dueDate: dateOnlyDaysAgo(20),
+      },
+      {
+        id: "m8-2",
+        title: "Build / implementation",
+        amountEtb: 20_000,
         status: "refunded",
         dueDate: dateOnlyDaysAgo(15),
+      },
+      {
+        id: "m8-3",
+        title: "UAT & handover",
+        amountEtb: 10_000,
+        status: "refunded",
+        dueDate: dateOnlyDaysAgo(10),
       },
     ],
     createdAt: daysAgo(25),
@@ -525,62 +766,34 @@ function seedDeals(): { deals: Deal[]; audit: AuditEntry[] } {
   };
   deals.push(d8);
   auditLog.push(
-    audit(d8.id, "user-buyer-2", "Yonas Tadesse", "deal.created", daysAgo(25)),
+    audit(
+      d8.id,
+      "user-freelance-buyer",
+      "Bethlehem Trading PLC",
+      "deal.created",
+      daysAgo(25)
+    ),
+    audit(
+      d8.id,
+      "user-seller-3",
+      "Kidus Freelance Studio",
+      "deal.accepted",
+      daysAgo(24)
+    ),
+    audit(
+      d8.id,
+      "user-freelance-buyer",
+      "Bethlehem Trading PLC",
+      "funds.received",
+      daysAgo(22)
+    ),
     audit(
       d8.id,
       "user-mediator-1",
-      "Dawit Negash (Mediator)",
+      "Dawit Negash",
       "funds.refunded",
       daysAgo(8),
       "Mutual unwind"
-    )
-  );
-
-
-  const d9: Deal = {
-    id: "deal-ecom-textiles",
-    title: "Handloom textiles wholesale lot",
-    sector: "ecommerce",
-    status: "funded",
-    amountEtb: 175_000,
-    feeEtb: feeForAmount(175_000),
-    currency: "ETB",
-    buyerId: "user-buyer-2",
-    sellerId: "user-seller-2",
-    description:
-      "Funded escrow for 200 units of handloom textiles. Seller to start packing and ship with photos.",
-    location: "Hawassa → Addis",
-    milestones: [
-      {
-        id: "m9-1",
-        title: "Pack & ship",
-        amountEtb: 100_000,
-        status: "funded",
-        dueDate: dateOnlyDaysAgo(-4),
-      },
-      {
-        id: "m9-2",
-        title: "Delivery confirmed",
-        amountEtb: 75_000,
-        status: "pending",
-        dueDate: dateOnlyDaysAgo(-12),
-      },
-    ],
-    createdAt: daysAgo(6),
-    updatedAt: daysAgo(1, 11),
-    fundedAt: daysAgo(1, 11),
-  };
-  deals.push(d9);
-  auditLog.push(
-    audit(d9.id, "user-buyer-2", "Yonas Tadesse", "deal.created", daysAgo(6)),
-    audit(d9.id, "user-seller-2", "Selam Craft Store", "deal.accepted", daysAgo(5)),
-    audit(
-      d9.id,
-      "user-buyer-2",
-      "Yonas Tadesse",
-      "funds.received",
-      daysAgo(1, 11),
-      "175,000 ETB into custody"
     )
   );
 
@@ -743,7 +956,7 @@ function seedSettlements(): SettlementRow[] {
       dealTitle: "Brand identity package",
       type: "refund",
       amountEtb: 45_000,
-      counterparty: "Yonas Tadesse",
+      counterparty: "Bethlehem Trading PLC",
       settledAt: daysAgo(8),
       bankRef: "BOA-REF-778301",
     },

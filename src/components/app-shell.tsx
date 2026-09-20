@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { LogOut } from "lucide-react";
 import { logout } from "@/lib/actions/auth";
-import { ROLE_LABELS, type User } from "@/lib/types";
+import { ROLE_LABELS, SECTOR_LABELS, type User } from "@/lib/types";
 import { buttonClass } from "@/components/ui/button";
 import { NavLinks, type NavItem } from "@/components/nav-links";
 
@@ -67,7 +67,11 @@ export function AppShell({
           <div className="flex items-center gap-3">
             <div className="hidden text-right sm:block">
               <p className="text-sm font-medium leading-none">{user.name}</p>
-              <p className="mt-1 text-xs text-zinc-500">{ROLE_LABELS[user.role]}</p>
+              <p className="mt-1 text-xs text-zinc-500">
+                {user.sector
+                  ? `${SECTOR_LABELS[user.sector]} · ${ROLE_LABELS[user.role]}`
+                  : ROLE_LABELS[user.role]}
+              </p>
             </div>
             <form action={logout}>
               <button type="submit" className={buttonClass({ variant: "ghost", size: "sm" })}>

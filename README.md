@@ -6,7 +6,7 @@ Trusted ETB escrow between buyers and sellers in Ethiopia — real estate, e-com
 
 - Next.js 16 (App Router) · React 19 · Tailwind CSS v4
 - In-memory `globalThis` store + Server Actions (Vercel serverless friendly)
-- Demo auth via HTTP-only session cookie (one-click role login)
+- Demo auth via HTTP-only session cookie (one-click industry account login)
 
 ## Local run
 
@@ -15,29 +15,32 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) and pick a demo role (Buyer, Seller, Verifier, Mediator, Operator).
+Open [http://localhost:3000](http://localhost:3000) and pick an industry demo account (RE Buyer, Travel Agency, Scholarship Agency, Freelance Seller, Verifier, Mediator, Operator, …).
 
 ```bash
 npm run build
 npm start
 ```
 
-## Demo roles & flows
+## Demo industries & accounts
 
-| Role | Entry | What to try |
-|------|-------|-------------|
-| Buyer | `/login` → Buyer | Fund awaiting deals, release pending releases, open disputes |
-| Seller | Seller | Accept pending deals, start work, mark milestones complete |
-| Verifier | Verifier | Approve/reject RE title checks in `/verify` |
-| Mediator | Mediator | Resolve disputes on `/mediate` (release or refund) |
-| Operator | Operator | KPIs, EOD bank packs, settlements, audit CSV, API usage |
+| Industry | Buyer | Seller | Extra |
+|----------|-------|--------|-------|
+| Real estate | Hanna Bekele | Abel Properties PLC | Meron (RE Verifier) |
+| E-commerce | Sara Mekonnen | Selam Craft Store | — |
+| Scholarship | Dr. Tigist Haile (sponsor) | Horizon Study Abroad | — |
+| Travel | Yonas Tadesse | Ethio Highlands Tours | — |
+| Freelancer | Bethlehem Trading PLC | Kidus Freelance Studio | — |
+| Cross-cutting | — | — | Dawit (Mediator), EscrowET Ops |
+
+Each buyer/seller only sees deals in their industry. Verifier queue is RE `pending_verification` only. Mediator sees disputed deals.
 
 **Happy path:** create deal → seller accepts → buyer funds → seller works / milestones → (RE: verify) → release.
 
 ## Key routes
 
-- `/` — landing + role entry
-- `/login` — demo sign-in
+- `/` — landing + industry account entry
+- `/login` — demo sign-in by industry identity
 - `/dashboard` — role home (buyers/sellers)
 - `/deals`, `/deals/new`, `/deals/[id]` — deal list, multi-step create, workspace + audit
 - `/verify` — RE verification queue
@@ -58,7 +61,7 @@ npm start
 4. Build command: `npm run build` (default)
 5. Output: leave default (no static export, no `basePath`)
 
-No environment variables required for the demo. Note: the in-memory store resets per serverless isolate — seed data reloads on cold start.
+No environment variables required for the demo. Note: the in-memory store resets per serverless isolate — seed data reloads on cold start (`__escrowet_store_v2__`).
 
 ## Product boundaries
 

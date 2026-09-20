@@ -8,6 +8,7 @@ import { StatCard } from "@/components/ui/stat";
 import { buttonClass } from "@/components/ui/button";
 import { StatusBadge } from "@/components/status-badge";
 import { redirect } from "next/navigation";
+import { SECTOR_LABELS } from "@/lib/types";
 
 export default async function DashboardPage() {
   const user = await getSessionUser();
@@ -38,7 +39,8 @@ export default async function DashboardPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
           <p className="mt-1 text-sm text-zinc-500">
-            Welcome back, {user.name.split(" ")[0]} — your escrow workspace
+            Welcome back, {user.name.split(" ")[0]}
+            {user.sector ? ` — ${SECTOR_LABELS[user.sector]}` : ""} workspace
           </p>
         </div>
         <Link href="/deals/new" className={buttonClass()}>

@@ -1,12 +1,30 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createDealAction } from "@/lib/actions/deals";
 import { feeForAmount, formatEtb } from "@/lib/format";
-import { SECTOR_LABELS, type Sector, type User } from "@/lib/types";
+import {
+  SECTOR_LABELS,
+  SECTOR_MILESTONE_TEMPLATES,
+  type Sector,
+  type User,
+} from "@/lib/types";
 import { buttonClass } from "@/components/ui/button";
 
 const sectors = Object.keys(SECTOR_LABELS) as Sector[];
+
+function milestonesForSector(sector: Sector, total: number) {
+  const tpl = SECTOR_MILESTONE_TEMPLATES[sector];
+  let allocated = 0;
+  return tpl.map((t, i) => {
+    const amount =
+      i === tpl.length - 1
+        ? Math.max(0, total - allocated)
+        : Math.round(total * t.weight);
+    allocated += amount;
+    return { title: t.title, amountEtb: amount, dueDate: "" };
+  });
+}
 
 export function CreateDealForm({
   currentUser,
@@ -15,32 +33,66 @@ export function CreateDealForm({
   currentUser: User;
   counterparties: User[];
 }) {
+  const defaultSector: Sector = currentUser.sector ?? "ecommerce";
   const [step, setStep] = useState(1);
   const [title, setTitle] = useState("");
-  const [sector, setSector] = useState<Sector>("ecommerce");
+  const [sector, setSector] = useState<Sector>(defaultSector);
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
   const [amountEtb, setAmountEtb] = useState(100000);
+  const [milestones, setMilestones] = useState(() =>
+    milestonesForSector(defaultSector, 100000)
+  );
+
+  const sectorSellers = useMemo(
+    () =>
+      counterparties.filter(
+        (u) => u.role === "seller" && (!u.sector || u.sector === sector)
+      ),
+    [counterparties, sector]
+  );
+  const sectorBuyers = useMemo(
+    () =>
+      counterparties.filter(
+        (u) => u.role === "buyer" && (!u.sector || u.sector === sector)
+      ),
+    [counterparties, sector]
+  );
+
   const [sellerId, setSellerId] = useState(
-    counterparties.find((u) => u.role === "seller")?.id ?? ""
+    () =>
+      sectorSellers.find((u) => u.sector === defaultSector)?.id ??
+      sectorSellers[0]?.id ??
+      ""
   );
   const [buyerId, setBuyerId] = useState(
-    counterparties.find((u) => u.role === "buyer")?.id ?? ""
+    () =>
+      sectorBuyers.find((u) => u.sector === defaultSector)?.id ??
+      sectorBuyers[0]?.id ??
+      ""
   );
-  const [milestones, setMilestones] = useState([
-    { title: "Delivery / completion", amountEtb: 100000, dueDate: "" },
-  ]);
+
+  useEffect(() => {
+    setMilestones(milestonesForSector(sector, amountEtb));
+    const nextSeller =
+      sectorSellers.find((u) => u.sector === sector)?.id ?? sectorSellers[0]?.id ?? "";
+    const nextBuyer =
+      sectorBuyers.find((u) => u.sector === sector)?.id ?? sectorBuyers[0]?.id ?? "";
+    setSellerId(nextSeller);
+    setBuyerId(nextBuyer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-template when sector changes
+  }, [sector]);
 
   const fee = useMemo(() => feeForAmount(amountEtb || 0), [amountEtb]);
   const milestoneSum = milestones.reduce((s, m) => s + (Number(m.amountEtb) || 0), 0);
-  const sellers = counterparties.filter((u) => u.role === "seller");
-  const buyers = counterparties.filter((u) => u.role === "buyer");
 
   function syncMilestoneTotal(nextAmount: number) {
     setAmountEtb(nextAmount);
-    if (milestones.length === 1) {
-      setMilestones([{ ...milestones[0], amountEtb: nextAmount }]);
-    }
+    setMilestones(milestonesForSector(sector, nextAmount));
+  }
+
+  function applySector(s: Sector) {
+    setSector(s);
   }
 
   return (
@@ -92,7 +144,7 @@ export function CreateDealForm({
                   <button
                     key={s}
                     type="button"
-                    onClick={() => setSector(s)}
+                    onClick={() => applySector(s)}
                     className={`rounded-xl border px-3 py-2 text-left text-sm ${
                       sector === s
                         ? "border-teal-600 bg-teal-50 text-teal-900"
@@ -103,6 +155,9 @@ export function CreateDealForm({
                   </button>
                 ))}
               </div>
+              <p className="mt-2 text-xs text-zinc-500">
+                Milestone defaults switch to {SECTOR_LABELS[sector]} language.
+              </p>
             </div>
             <div>
               <label className="text-sm font-medium">Description</label>
@@ -130,13 +185,15 @@ export function CreateDealForm({
           <div className="space-y-4">
             {currentUser.role !== "seller" ? (
               <div>
-                <label className="text-sm font-medium">Seller</label>
+                <label className="text-sm font-medium">
+                  Seller ({SECTOR_LABELS[sector]})
+                </label>
                 <select
                   value={sellerId}
                   onChange={(e) => setSellerId(e.target.value)}
                   className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
                 >
-                  {sellers.map((s) => (
+                  {sectorSellers.map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.name}
                     </option>
@@ -145,13 +202,15 @@ export function CreateDealForm({
               </div>
             ) : (
               <div>
-                <label className="text-sm font-medium">Buyer</label>
+                <label className="text-sm font-medium">
+                  Buyer ({SECTOR_LABELS[sector]})
+                </label>
                 <select
                   value={buyerId}
                   onChange={(e) => setBuyerId(e.target.value)}
                   className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
                 >
-                  {buyers.map((b) => (
+                  {sectorBuyers.map((b) => (
                     <option key={b.id} value={b.id}>
                       {b.name}
                     </option>
@@ -185,7 +244,9 @@ export function CreateDealForm({
         {step === 3 ? (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-medium">Milestones</p>
+              <p className="text-sm font-medium">
+                Milestones — {SECTOR_LABELS[sector]}
+              </p>
               <button
                 type="button"
                 className={buttonClass({ variant: "secondary", size: "sm" })}

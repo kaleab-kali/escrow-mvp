@@ -34,6 +34,8 @@ export interface User {
   role: Role;
   phone?: string;
   city?: string;
+  /** Industry this demo identity belongs to (buyers/sellers/verifier). */
+  sector?: Sector;
 }
 
 export interface Milestone {
@@ -174,4 +176,33 @@ export const ROLE_LABELS: Record<Role, string> = {
   verifier: "Verifier (RE)",
   mediator: "Mediator",
   operator: "Operator",
+};
+
+/** Default milestone titles by industry for create-deal form. */
+export const SECTOR_MILESTONE_TEMPLATES: Record<
+  Sector,
+  { title: string; weight: number }[]
+> = {
+  real_estate: [
+    { title: "Deposit secured", weight: 0.2 },
+    { title: "Title verification", weight: 0.55 },
+    { title: "Handover & keys", weight: 0.25 },
+  ],
+  ecommerce: [
+    { title: "Pack & ship", weight: 0.5 },
+    { title: "Delivery / inspection", weight: 0.5 },
+  ],
+  scholarship: [
+    { title: "Enrollment / visa verified", weight: 0.3 },
+    { title: "Tuition release", weight: 0.7 },
+  ],
+  travel: [
+    { title: "Booking confirmation", weight: 0.5 },
+    { title: "Trip completion", weight: 0.5 },
+  ],
+  freelancer: [
+    { title: "Design & scope", weight: 0.3 },
+    { title: "Build / implementation", weight: 0.45 },
+    { title: "UAT & handover", weight: 0.25 },
+  ],
 };
