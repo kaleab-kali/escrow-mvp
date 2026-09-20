@@ -1,52 +1,42 @@
 import Link from "next/link";
-import {
-  LayoutDashboard,
-  Handshake,
-  Plus,
-  ShieldCheck,
-  Scale,
-  BarChart3,
-  Code2,
-  LogOut,
-  Building2,
-} from "lucide-react";
+import { LogOut } from "lucide-react";
 import { logout } from "@/lib/actions/auth";
 import { ROLE_LABELS, type User } from "@/lib/types";
 import { buttonClass } from "@/components/ui/button";
-import { NavLinks } from "@/components/nav-links";
+import { NavLinks, type NavItem } from "@/components/nav-links";
 
-function navFor(role: User["role"]) {
-  const common = [
-    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/deals", label: "Deals", icon: Handshake },
-    { href: "/deals/new", label: "New deal", icon: Plus },
+function navFor(role: User["role"]): NavItem[] {
+  const common: NavItem[] = [
+    { href: "/dashboard", label: "Dashboard", icon: "LayoutDashboard" },
+    { href: "/deals", label: "Deals", icon: "Handshake" },
+    { href: "/deals/new", label: "New deal", icon: "Plus" },
   ];
   if (role === "operator") {
     return [
-      { href: "/operator", label: "Operations", icon: BarChart3 },
-      { href: "/deals", label: "All deals", icon: Handshake },
-      { href: "/deals/new", label: "New deal", icon: Plus },
-      { href: "/operator/eod", label: "EOD packs", icon: Building2 },
-      { href: "/operator/settlements", label: "Settlements", icon: Building2 },
-      { href: "/operator/audit", label: "Audit", icon: BarChart3 },
-      { href: "/partners", label: "Developer", icon: Code2 },
+      { href: "/operator", label: "Operations", icon: "BarChart3" },
+      { href: "/deals", label: "All deals", icon: "Handshake" },
+      { href: "/deals/new", label: "New deal", icon: "Plus" },
+      { href: "/operator/eod", label: "EOD packs", icon: "Building2" },
+      { href: "/operator/settlements", label: "Settlements", icon: "Building2" },
+      { href: "/operator/audit", label: "Audit", icon: "BarChart3" },
+      { href: "/partners", label: "Developer", icon: "Code2" },
     ];
   }
   if (role === "verifier") {
     return [
-      { href: "/verify", label: "Verification", icon: ShieldCheck },
-      { href: "/deals", label: "Deals", icon: Handshake },
+      { href: "/verify", label: "Verification", icon: "ShieldCheck" },
+      { href: "/deals", label: "Deals", icon: "Handshake" },
     ];
   }
   if (role === "mediator") {
     return [
-      { href: "/mediate", label: "Disputes", icon: Scale },
-      { href: "/deals", label: "Deals", icon: Handshake },
+      { href: "/mediate", label: "Disputes", icon: "Scale" },
+      { href: "/deals", label: "Deals", icon: "Handshake" },
     ];
   }
   return [
     ...common,
-    { href: "/partners", label: "Developer", icon: Code2 },
+    { href: "/partners", label: "Developer", icon: "Code2" },
   ];
 }
 

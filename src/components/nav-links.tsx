@@ -3,18 +3,51 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
-import type { LucideIcon } from "lucide-react";
+import {
+  LayoutDashboard,
+  Handshake,
+  Plus,
+  ShieldCheck,
+  Scale,
+  BarChart3,
+  Code2,
+  Building2,
+  type LucideIcon,
+} from "lucide-react";
 
-export function NavLinks({
-  items,
-}: {
-  items: { href: string; label: string; icon: LucideIcon }[];
-}) {
+export type NavIconName =
+  | "LayoutDashboard"
+  | "Handshake"
+  | "Plus"
+  | "ShieldCheck"
+  | "Scale"
+  | "BarChart3"
+  | "Code2"
+  | "Building2";
+
+const ICONS: Record<NavIconName, LucideIcon> = {
+  LayoutDashboard,
+  Handshake,
+  Plus,
+  ShieldCheck,
+  Scale,
+  BarChart3,
+  Code2,
+  Building2,
+};
+
+export type NavItem = {
+  href: string;
+  label: string;
+  icon: NavIconName;
+};
+
+export function NavLinks({ items }: { items: NavItem[] }) {
   const pathname = usePathname();
   return (
     <nav className="hidden items-center gap-1 md:flex">
       {items.map((item) => {
-        const Icon = item.icon;
+        const Icon = ICONS[item.icon];
         const active =
           pathname === item.href ||
           (item.href !== "/dashboard" &&
