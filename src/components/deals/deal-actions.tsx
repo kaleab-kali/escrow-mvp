@@ -4,6 +4,7 @@ import {
   fundDeal,
   markComplete,
   openDispute,
+  refundDeal,
   rejectVerification,
   releaseDeal,
   requestVerification,
@@ -14,26 +15,43 @@ import type { NextAction } from "@/lib/deal-helpers";
 import { buttonClass } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 
-const binders: Record<
-  NonNullable<NextAction["action"]>,
-  (dealId: string) => (formData?: FormData) => Promise<void>
-> = {
-  accept: (id) => async () => acceptDeal(id),
-  fund: (id) => async () => fundDeal(id),
-  start_work: (id) => async () => startWork(id),
-  request_verification: (id) => async () => requestVerification(id),
-  approve_verification: (id) => async () => approveVerification(id),
-  reject_verification: (id) => async () => rejectVerification(id),
-  mark_complete: (id) => async () => markComplete(id),
-  release: (id) => async () => releaseDeal(id),
-  refund: (id) => async () => {
-    const { refundDeal } = await import("@/lib/actions/deals");
-    await refundDeal(id);
-  },
-  open_dispute: (id) => async (fd) => openDispute(id, fd!),
-  resolve_release: (id) => async () => resolveDispute(id, "release"),
-  resolve_refund: (id) => async () => resolveDispute(id, "refund"),
-};
+type BoundAction = (formData: FormData) => Promise<void>;
+
+function bindAction(
+  action: NonNullable<NextAction["action"]>,
+  dealId: string
+): BoundAction {
+  switch (action) {
+    case "accept":
+      return acceptDeal.bind(null, dealId);
+    case "fund":
+      return fundDeal.bind(null, dealId);
+    case "start_work":
+      return startWork.bind(null, dealId);
+    case "request_verification":
+      return requestVerification.bind(null, dealId);
+    case "approve_verification":
+      return approveVerification.bind(null, dealId);
+    case "reject_verification":
+      return rejectVerification.bind(null, dealId);
+    case "mark_complete":
+      return markComplete.bind(null, dealId);
+    case "release":
+      return releaseDeal.bind(null, dealId);
+    case "refund":
+      return refundDeal.bind(null, dealId);
+    case "open_dispute":
+      return openDispute.bind(null, dealId);
+    case "resolve_release":
+      return resolveDispute.bind(null, dealId, "release");
+    case "resolve_refund":
+      return resolveDispute.bind(null, dealId, "refund");
+    default: {
+      const _exhaustive: never = action;
+      throw new Error(`Unknown action: ${_exhaustive}`);
+    }
+  }
+}
 
 export function DealActionsPanel({
   dealId,
@@ -61,7 +79,7 @@ export function DealActionsPanel({
         ))}
 
         {primary.map((a) => (
-          <form key={a.action} action={binders[a.action!](dealId)}>
+          <form key={a.action} action={bindAction(a.action!, dealId)}>
             <button type="submit" className={buttonClass({ size: "lg", className: "w-full" })}>
               {a.label}
             </button>
@@ -72,7 +90,7 @@ export function DealActionsPanel({
         {secondary
           .filter((a) => a.action !== "open_dispute")
           .map((a) => (
-            <form key={a.action} action={binders[a.action!](dealId)}>
+            <form key={a.action} action={bindAction(a.action!, dealId)}>
               <button
                 type="submit"
                 className={buttonClass({
@@ -93,7 +111,7 @@ export function DealActionsPanel({
             <summary className="cursor-pointer text-sm font-medium text-rose-800">
               Open dispute
             </summary>
-            <form action={binders.open_dispute(dealId)} className="mt-3 space-y-3">
+            <form action={bindAction("open_dispute", dealId)} className="mt-3 space-y-3">
               <textarea
                 name="reason"
                 required
