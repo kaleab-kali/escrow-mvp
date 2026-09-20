@@ -1,11 +1,14 @@
-import { getDeals } from "@/lib/db";
+"use client";
+
+import { useEscrow } from "@/lib/store";
 import { DashboardShell } from "@/components/DashboardShell";
 import { DealCard } from "@/components/DealCard";
 import { StatCard } from "@/components/StatCard";
 import { formatEtb } from "@/lib/format";
 
 export default function MarketplaceDashboard() {
-  const deals = getDeals().filter(
+  const { deals: all } = useEscrow();
+  const deals = all.filter(
     (d) => d.sector === "ecommerce" || d.sector === "freelancer"
   );
   const volume = deals.reduce((s, d) => s + d.amountEtb, 0);

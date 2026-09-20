@@ -1,3 +1,5 @@
+"use client";
+
 import type { ReactNode } from "react";
 import Link from "next/link";
 import {
@@ -12,7 +14,7 @@ import {
 } from "lucide-react";
 import { ROLES } from "@/lib/roles";
 import { SECTORS } from "@/lib/sectors";
-import { getDeals } from "@/lib/db";
+import { useEscrow } from "@/lib/store";
 import { DealCard } from "@/components/DealCard";
 import { StatCard } from "@/components/StatCard";
 import { formatEtb } from "@/lib/format";
@@ -27,7 +29,7 @@ const ICONS: Record<string, ReactNode> = {
 };
 
 export default function HomePage() {
-  const deals = getDeals();
+  const { deals } = useEscrow();
   const held = deals.reduce((s, d) => s + d.heldEtb, 0);
   const released = deals.reduce((s, d) => s + d.releasedEtb, 0);
   const openDisputes = deals.filter((d) => d.dispute?.status === "open").length;

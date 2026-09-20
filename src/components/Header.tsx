@@ -1,10 +1,13 @@
+"use client";
+
 import Link from "next/link";
 import { ShieldCheck } from "lucide-react";
 import { RoleSwitcher } from "./RoleSwitcher";
-import type { RoleId } from "@/lib/types";
 import { getRole } from "@/lib/roles";
+import { useEscrow } from "@/lib/store";
 
-export function Header({ role }: { role: RoleId }) {
+export function Header() {
+  const { role } = useEscrow();
   const r = getRole(role);
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur">
@@ -42,7 +45,7 @@ export function Header({ role }: { role: RoleId }) {
           >
             {r.label}
           </span>
-          <RoleSwitcher current={role} />
+          <RoleSwitcher />
         </div>
       </div>
     </header>

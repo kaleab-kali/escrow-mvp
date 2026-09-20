@@ -1,12 +1,15 @@
-import { getDeals } from "@/lib/db";
+"use client";
+
+import Link from "next/link";
+import { useEscrow } from "@/lib/store";
 import { DashboardShell } from "@/components/DashboardShell";
 import { DealCard } from "@/components/DealCard";
 import { StatCard } from "@/components/StatCard";
-import Link from "next/link";
 import { StatusChip } from "@/components/StatusChip";
 
 export default function VerifierDashboard() {
-  const deals = getDeals().filter((d) => d.sector === "real_estate");
+  const { deals: all } = useEscrow();
+  const deals = all.filter((d) => d.sector === "real_estate");
   const queue = deals.flatMap((d) =>
     d.milestones
       .filter((m) => m.status === "submitted")
@@ -52,7 +55,7 @@ export default function VerifierDashboard() {
                   </div>
                   <StatusChip status={milestone.status} className="mt-1" />
                 </div>
-                <Link href={`/deals/${deal.id}`} className="btn-primary">
+                <Link href={`/deals/view?id=${deal.id}`} className="btn-primary">
                   Review
                 </Link>
               </li>

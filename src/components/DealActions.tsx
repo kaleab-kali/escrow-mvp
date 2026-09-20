@@ -1,18 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import type { EscrowDeal, FundingMethod, RoleId } from "@/lib/types";
-import {
-  fundDealAction,
-  submitEvidenceAction,
-  verifyMilestoneAction,
-  releaseMilestoneAction,
-  refundDealAction,
-  openDisputeAction,
-  resolveDisputeAction,
-  closeDealAction,
-} from "@/lib/actions";
+import { useEscrow } from "@/lib/store";
 import { StatusChip } from "./StatusChip";
 import { formatEtb } from "@/lib/format";
 
@@ -23,25 +13,36 @@ export function DealActions({
   deal: EscrowDeal;
   role: RoleId;
 }) {
-  const router = useRouter();
-  const [pending, start] = useTransition();
+  const {
+    fundDeal,
+    submitEvidence,
+    verifyMilestone,
+    releaseMilestone,
+    refundDeal,
+    openDispute,
+    resolveDispute,
+    closeDeal,
+  } = useEscrow();
+  const [pending, setPending] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [evidence, setEvidence] = useState<Record<string, string>>({});
   const [disputeReason, setDisputeReason] = useState("");
   const [resolution, setResolution] = useState("");
   const [splitPct, setSplitPct] = useState(50);
 
-  function run(fn: () => Promise<{ ok: boolean; error?: string } | void>) {
+  function run(fn: () => { ok: boolean; error?: string } | void) {
     setMsg(null);
-    start(async () => {
-      const res = await fn();
+    setPending(true);
+    try {
+      const res = fn();
       if (res && "ok" in res && !res.ok) {
         setMsg(res.error || "Action failed");
       } else {
         setMsg("Updated ✓");
-        router.refresh();
       }
-    });
+    } finally {
+      setPending(false);
+    }
   }
 
   const canFund =
@@ -85,7 +86,6 @@ export function DealActions({
   function canReleaseMilestone(status: string): boolean {
     if (!canRelease) return false;
     if (status === "verified") return true;
-    // Non-RE: bank may release submitted after buyer path; operator always if verified/submitted
     if (status === "submitted" && deal.sector !== "real_estate" && role === "operator")
       return true;
     return false;
@@ -111,7 +111,7 @@ export function DealActions({
               className="btn-primary"
               disabled={pending}
               onClick={() =>
-                run(() => fundDealAction(deal.id, "bank_transfer" as FundingMethod))
+                run(() => fundDeal(deal.id, "bank_transfer" as FundingMethod))
               }
             >
               Bank transfer
@@ -120,7 +120,7 @@ export function DealActions({
               className="btn-secondary"
               disabled={pending}
               onClick={() =>
-                run(() => fundDealAction(deal.id, "mobile_money" as FundingMethod))
+                run(() => fundDeal(deal.id, "mobile_money" as FundingMethod))
               }
             >
               Mobile money (Telebirr)
@@ -181,7 +181,7 @@ export function DealActions({
                         disabled={pending}
                         onClick={() =>
                           run(() =>
-                            submitEvidenceAction(
+                            submitEvidence(
                               deal.id,
                               m.id,
                               evidence[m.id] || "Demo evidence submitted"
@@ -199,7 +199,7 @@ export function DealActions({
                       className="btn-primary"
                       disabled={pending}
                       onClick={() =>
-                        run(() => verifyMilestoneAction(deal.id, m.id, true))
+                        run(() => verifyMilestone(deal.id, m.id, true))
                       }
                     >
                       Verify / approve
@@ -209,7 +209,7 @@ export function DealActions({
                       disabled={pending}
                       onClick={() =>
                         run(() =>
-                          verifyMilestoneAction(
+                          verifyMilestone(
                             deal.id,
                             m.id,
                             false,
@@ -226,9 +226,7 @@ export function DealActions({
                   <button
                     className="btn-amber"
                     disabled={pending}
-                    onClick={() =>
-                      run(() => releaseMilestoneAction(deal.id, m.id))
-                    }
+                    onClick={() => run(() => releaseMilestone(deal.id, m.id))}
                   >
                     Release + fee split
                   </button>
@@ -251,9 +249,7 @@ export function DealActions({
           <button
             className="btn-danger mt-3"
             disabled={pending || !disputeReason.trim()}
-            onClick={() =>
-              run(() => openDisputeAction(deal.id, disputeReason))
-            }
+            onClick={() => run(() => openDispute(deal.id, disputeReason))}
           >
             Open dispute
           </button>
@@ -298,7 +294,7 @@ export function DealActions({
                   disabled={pending}
                   onClick={() =>
                     run(() =>
-                      resolveDisputeAction(
+                      resolveDispute(
                         deal.id,
                         "release_to_seller",
                         resolution || "Release remaining to seller"
@@ -313,7 +309,7 @@ export function DealActions({
                   disabled={pending}
                   onClick={() =>
                     run(() =>
-                      resolveDisputeAction(
+                      resolveDispute(
                         deal.id,
                         "refund_to_buyer",
                         resolution || "Full refund to buyer"
@@ -328,7 +324,7 @@ export function DealActions({
                   disabled={pending}
                   onClick={() =>
                     run(() =>
-                      resolveDisputeAction(
+                      resolveDispute(
                         deal.id,
                         "split",
                         resolution || `Split ${splitPct}/${100 - splitPct}`,
@@ -351,7 +347,7 @@ export function DealActions({
             className="btn-secondary"
             disabled={pending}
             onClick={() =>
-              run(() => refundDealAction(deal.id, "Operator refund (demo)"))
+              run(() => refundDeal(deal.id, "Operator refund (demo)"))
             }
           >
             Reject / refund held funds
@@ -361,7 +357,7 @@ export function DealActions({
           <button
             className="btn-primary"
             disabled={pending}
-            onClick={() => run(() => closeDealAction(deal.id))}
+            onClick={() => run(() => closeDeal(deal.id))}
           >
             Close with statement
           </button>

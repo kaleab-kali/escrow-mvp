@@ -1,25 +1,18 @@
 "use client";
 
-import { useTransition } from "react";
-import { useRouter } from "next/navigation";
-import { resetDemoAction } from "@/lib/actions";
+import { useEscrow } from "@/lib/store";
 
 export function ResetDemoButton() {
-  const [pending, start] = useTransition();
-  const router = useRouter();
+  const { resetDemo } = useEscrow();
   return (
     <button
       className="btn-secondary"
-      disabled={pending}
       onClick={() => {
         if (!confirm("Reset all demo data to seed state?")) return;
-        start(async () => {
-          await resetDemoAction();
-          router.refresh();
-        });
+        resetDemo();
       }}
     >
-      {pending ? "Resetting…" : "Reset demo data"}
+      Reset demo data
     </button>
   );
 }

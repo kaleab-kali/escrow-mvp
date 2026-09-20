@@ -1,15 +1,16 @@
+"use client";
+
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { CreateDealForm } from "@/components/CreateDealForm";
 import { SECTORS } from "@/lib/sectors";
 import type { SectorId } from "@/lib/types";
 
-export default function NewDealPage({
-  searchParams,
-}: {
-  searchParams: { sector?: string };
-}) {
+function NewDealInner() {
+  const searchParams = useSearchParams();
+  const sectorParam = searchParams.get("sector");
   const sector =
-    (SECTORS.find((s) => s.id === searchParams.sector)?.id as SectorId) ||
-    "ecommerce";
+    (SECTORS.find((s) => s.id === sectorParam)?.id as SectorId) || "ecommerce";
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -23,5 +24,13 @@ export default function NewDealPage({
       </div>
       <CreateDealForm defaultSector={sector} />
     </div>
+  );
+}
+
+export default function NewDealPage() {
+  return (
+    <Suspense fallback={<div className="text-sm text-slate-500">Loading form…</div>}>
+      <NewDealInner />
+    </Suspense>
   );
 }

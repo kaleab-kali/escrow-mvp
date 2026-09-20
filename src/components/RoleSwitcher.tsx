@@ -1,14 +1,13 @@
 "use client";
 
-import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ROLES } from "@/lib/roles";
 import type { RoleId } from "@/lib/types";
-import { setRole } from "@/lib/actions";
+import { useEscrow } from "@/lib/store";
 import clsx from "clsx";
 
-export function RoleSwitcher({ current }: { current: RoleId }) {
-  const [pending, start] = useTransition();
+export function RoleSwitcher() {
+  const { role, setRole } = useEscrow();
   const router = useRouter();
 
   return (
@@ -18,18 +17,13 @@ export function RoleSwitcher({ current }: { current: RoleId }) {
       </label>
       <select
         className={clsx(
-          "rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium shadow-sm max-w-[220px]",
-          pending && "opacity-60"
+          "rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium shadow-sm max-w-[220px]"
         )}
-        value={current}
-        disabled={pending}
+        value={role}
         onChange={(e) => {
-          const role = e.target.value as RoleId;
-          start(async () => {
-            await setRole(role);
-            router.push(`/dashboard/${role === "regulator" ? "regulator" : role}`);
-            router.refresh();
-          });
+          const next = e.target.value as RoleId;
+          setRole(next);
+          router.push(`/dashboard/${next}`);
         }}
       >
         {ROLES.map((r) => (

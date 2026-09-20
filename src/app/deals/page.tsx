@@ -1,17 +1,17 @@
+"use client";
+
 import Link from "next/link";
-import { getDeals } from "@/lib/db";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
+import { useEscrow } from "@/lib/store";
 import { DealCard } from "@/components/DealCard";
 import { SECTORS } from "@/lib/sectors";
 
-export default function DealsPage({
-  searchParams,
-}: {
-  searchParams: { sector?: string };
-}) {
-  let deals = getDeals();
-  if (searchParams.sector) {
-    deals = deals.filter((d) => d.sector === searchParams.sector);
-  }
+function DealsList() {
+  const searchParams = useSearchParams();
+  const sector = searchParams.get("sector") || undefined;
+  const { deals: all } = useEscrow();
+  const deals = sector ? all.filter((d) => d.sector === sector) : all;
 
   return (
     <div className="space-y-6">
@@ -31,7 +31,7 @@ export default function DealsPage({
         <Link
           href="/deals"
           className={`rounded-full px-3 py-1 text-xs font-semibold border ${
-            !searchParams.sector
+            !sector
               ? "bg-[#0b3d2e] text-white border-[#0b3d2e]"
               : "bg-white text-slate-600 border-slate-200"
           }`}
@@ -43,7 +43,7 @@ export default function DealsPage({
             key={s.id}
             href={`/deals?sector=${s.id}`}
             className={`rounded-full px-3 py-1 text-xs font-semibold border ${
-              searchParams.sector === s.id
+              sector === s.id
                 ? "bg-[#0b3d2e] text-white border-[#0b3d2e]"
                 : "bg-white text-slate-600 border-slate-200"
             }`}
@@ -62,5 +62,13 @@ export default function DealsPage({
         )}
       </div>
     </div>
+  );
+}
+
+export default function DealsPage() {
+  return (
+    <Suspense fallback={<div className="text-sm text-slate-500">Loading deals…</div>}>
+      <DealsList />
+    </Suspense>
   );
 }

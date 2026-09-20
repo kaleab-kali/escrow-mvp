@@ -1,17 +1,17 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { SECTORS } from "@/lib/sectors";
+import { SECTORS, getSector } from "@/lib/sectors";
 import type { FundingMethod, SectorId } from "@/lib/types";
-import { createDealAction } from "@/lib/actions";
-import { getSector } from "@/lib/sectors";
+import { useEscrow } from "@/lib/store";
 
 export function CreateDealForm({ defaultSector }: { defaultSector: SectorId }) {
   const [sector, setSector] = useState<SectorId>(defaultSector);
-  const [pending, start] = useTransition();
+  const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const { createDeal } = useEscrow();
   const s = getSector(sector);
 
   return (
@@ -21,24 +21,23 @@ export function CreateDealForm({ defaultSector }: { defaultSector: SectorId }) {
         e.preventDefault();
         const fd = new FormData(e.currentTarget);
         setError(null);
-        start(async () => {
-          const res = await createDealAction({
-            sector,
-            title: String(fd.get("title") || ""),
-            description: String(fd.get("description") || ""),
-            amountEtb: Number(fd.get("amountEtb") || 0),
-            buyerName: String(fd.get("buyerName") || ""),
-            sellerName: String(fd.get("sellerName") || ""),
-            location: String(fd.get("location") || "Addis Ababa"),
-            fundingMethod: (fd.get("fundingMethod") as FundingMethod) || undefined,
-          });
-          if (!res.ok) {
-            setError(res.error);
-            return;
-          }
-          router.push(`/deals/${res.id}`);
-          router.refresh();
+        setPending(true);
+        const res = createDeal({
+          sector,
+          title: String(fd.get("title") || ""),
+          description: String(fd.get("description") || ""),
+          amountEtb: Number(fd.get("amountEtb") || 0),
+          buyerName: String(fd.get("buyerName") || ""),
+          sellerName: String(fd.get("sellerName") || ""),
+          location: String(fd.get("location") || "Addis Ababa"),
+          fundingMethod: (fd.get("fundingMethod") as FundingMethod) || undefined,
         });
+        setPending(false);
+        if (!res.ok) {
+          setError(res.error);
+          return;
+        }
+        router.push(`/deals/view?id=${res.id}`);
       }}
     >
       <div>
@@ -94,11 +93,7 @@ export function CreateDealForm({ defaultSector }: { defaultSector: SectorId }) {
         </div>
         <div>
           <label className="label">Location</label>
-          <input
-            name="location"
-            className="input"
-            defaultValue="Addis Ababa"
-          />
+          <input name="location" className="input" defaultValue="Addis Ababa" />
         </div>
       </div>
 
@@ -109,11 +104,7 @@ export function CreateDealForm({ defaultSector }: { defaultSector: SectorId }) {
         </div>
         <div>
           <label className="label">Seller / provider</label>
-          <input
-            name="sellerName"
-            className="input"
-            defaultValue="Demo Seller"
-          />
+          <input name="sellerName" className="input" defaultValue="Demo Seller" />
         </div>
       </div>
 

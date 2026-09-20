@@ -6,115 +6,85 @@ Trust intermediary for informal / low-trust markets in Ethiopia: buyer deposits 
 
 Built for demos to sector clients, banks, and the National Bank of Ethiopia (NBE).
 
-## Quick start
+## Live demo (GitHub Pages)
+
+**https://kaleab-kali.github.io/escrow-mvp/**
+
+Static hosting: all deal state and the demo role live in **browser `localStorage`** (not a server database). Use the Operator dashboard **Reset demo data** to re-seed.
+
+## Quick start (local)
 
 ```bash
-cd /workspace/escrow-mvp
+cd escrow-mvp
 npm install
 npm run dev
 ```
 
-Open **http://localhost:3000** (Next.js default port **3000**).
-
-Other scripts:
+Open **http://localhost:3000**.
 
 | Script | Purpose |
 |--------|---------|
-| `npm run dev` | Development server (port 3000) |
-| `npm run build` | Production build |
-| `npm run start` | Serve production build (port 3000) |
-| `npm run seed` | Clear DB so next boot re-seeds demo deals |
+| `npm run dev` | Development server (port 3000) — no `basePath` |
+| `npm run build` | Production build (Node server / `.next`) |
+| `GITHUB_PAGES=true npm run build` | Static export to `out/` with `basePath` `/escrow-mvp` |
+| `npm run start` | Serve production Node build |
+| `npm run seed` | Prints how to reset localStorage demo data |
 
-Persistence: JSON file at `data/escrow-db.json` (auto-created & seeded on first read).
+## GitHub Pages build
+
+```bash
+GITHUB_PAGES=true npm run build
+# → out/index.html and static assets under /escrow-mvp/
+```
+
+CI: `.github/workflows/deploy-pages.yml` builds with `GITHUB_PAGES=true` on push to `main` and deploys `out/` via `actions/upload-pages-artifact` + `actions/deploy-pages`.
+
+Enable **Settings → Pages → Source: GitHub Actions** on the repo.
 
 ## 10-minute demo script
 
-### 0. Setup (30s)
-1. `npm run seed && npm run dev`
-2. Open http://localhost:3000 — note the amber demo banner.
-3. Point out: English UI + Amharic on key nav/labels; fictional Ethiopian banks; ETB amounts; Addis Ababa context.
+### 0. Setup
+1. Open the Pages URL (or `npm run dev`).
+2. Note the amber demo banner (EN + Amharic).
+3. Point out: fictional Ethiopian banks, ETB, Addis Ababa context.
 
-### 1. Informal / e-commerce sale (~2 min)
-1. Home → **Pick Buyer** (or Role switcher → Buyer).
-2. Open **Samsung Galaxy A55** (`ESC-EC-2026-014`) — status **Funded**.
-3. Switch role → **Seller**. Submit evidence on “Shipped” (courier note).
-4. Switch → **Buyer**. Verify / approve the milestone.
-5. Switch → **Bank Partner**. **Release + fee split** — show ledger deposit → hold → release → fee.
-6. Optional: fund a **new escrow** from Home → E-commerce template (happy path from scratch).
+### 1. Informal / e-commerce sale
+1. Home → **Pick Buyer**.
+2. Open a funded e-commerce deal → Seller submits evidence → Buyer verifies → Bank releases (ledger + fee).
 
-### 2. Real-estate milestones (~3 min)
-1. Open **Bole Apartment Off-plan** (`ESC-RE-2026-001`) — **Partially released**; milestone 1 paid; milestone 2 evidence submitted.
-2. Switch → **Real-estate Verifier**. Review roofing evidence → Verify.
-3. Switch → **Bank**. Release milestone 2. Emphasize **Proclamation 1357/2024 spirit**: progress-tied releases, independent verification, bank custody.
+### 2. Real-estate milestones
+1. Open the real-estate deal (partially released).
+2. Verifier reviews submitted evidence → Bank releases next tranche.
 
-### 3. Bank partner view (~2 min)
-1. Role → **Bank Partner** → Dashboard.
-2. Show **Segregated custody** total, pending release instructions, multi-bank ledger.
-3. Stress: platform instructs; bank holds/releases; funds never sit on EscrowET’s balance sheet (in this model).
-
-### 4. NBE / regulator view (~2 min)
-1. Role → **NBE / Regulator**.
-2. Read-only table of all escrows, per-bank exposure, open disputes.
-3. Message: supervisory transparency over segregated client money — **demo only, not a licence application**.
-
-### 5. Dispute path (bonus ~2 min)
-1. Open **Hungary Tuition Package** (`ESC-SC-2026-007`) — already **Disputed**.
-2. Role → **Dispute Mediator** → Mediate → Refund / Release / Split.
-3. Show audit trail + closing statement after resolution.
+### 3. Bank / NBE / dispute
+1. **Bank** dashboard — custody totals and release queue.
+2. **Regulator** — read-only exposure by bank.
+3. **Mediator** — resolve the disputed scholarship deal.
 
 ## Roles (one-click, no real auth)
 
-| Role | Route | What they do |
-|------|-------|----------------|
-| Buyer | `/dashboard/buyer` | Fund, inspect, approve |
-| Seller / Provider | `/dashboard/seller` | Submit evidence |
-| Marketplace admin | `/dashboard/marketplace` | Light oversight |
-| Real-estate verifier | `/dashboard/verifier` | Site / milestone verify |
-| Bank partner | `/dashboard/bank` | Custody ledger & releases |
-| Escrow operator | `/dashboard/operator` | Ops, fees, reset demo |
-| NBE / regulator | `/dashboard/regulator` | Read-only supervision |
-| Dispute mediator | `/dashboard/mediator` | Resolve disputes |
-
-Switch roles anytime via the header **Demo role** dropdown.
-
-## Seeded deals (one per sector)
-
-| Ref | Sector | Stage |
-|-----|--------|--------|
-| `ESC-RE-2026-001` | Real estate | Partially released (M1 paid, M2 submitted) |
-| `ESC-EC-2026-014` | E-commerce | Funded, awaiting delivery |
-| `ESC-SC-2026-007` | Scholarship | Disputed (visa evidence) |
-| `ESC-TR-2026-022` | Travel | Pending funding |
-| `ESC-FL-2026-031` | Freelancers | Closed (full release) |
-
-## Key routes
-
-- `/` — Home: role picker + sector templates + seeded deals
-- `/deals` — All deals (filter by sector)
-- `/deals/new` — Create escrow from template
-- `/deals/[id]` — Deal detail: milestones, ledger, audit, actions
-- `/dashboard/[role]` — Role dashboards (see table above)
+| Role | Route |
+|------|-------|
+| Buyer | `/dashboard/buyer` |
+| Seller | `/dashboard/seller` |
+| Marketplace | `/dashboard/marketplace` |
+| Verifier | `/dashboard/verifier` |
+| Bank | `/dashboard/bank` |
+| Operator | `/dashboard/operator` |
+| Regulator (NBE) | `/dashboard/regulator` |
+| Mediator | `/dashboard/mediator` |
 
 ## Architecture
 
-- **Next.js 14** App Router + TypeScript + Tailwind CSS
-- **JSON store** in `data/escrow-db.json` (SQLite/`better-sqlite3` skipped — native build tools unavailable on this box)
-- Server Actions in `src/lib/actions.ts` for mutations
-- Cookie-based demo role (`escrow_demo_role`)
-- Organized as `app/`, `components/`, `lib/` (db, seed, types, roles, sectors)
+- **Next.js 14** App Router + TypeScript + Tailwind
+- **Client store** (`src/lib/store.tsx`) + **localStorage** — works on static GitHub Pages
+- Seeded deals in `src/lib/seed.ts` (loaded when storage is empty)
+- Amharic on key nav/labels (demo banner, header, role/sector labels)
+- Static deal detail: `/deals/view?id=…` (query param, not a dynamic server route)
 
 ## Demo limitations
 
 - No real payments, Telebirr, or bank APIs
-- No real KYC / licensing / NBE authorization
-- Single-process JSON file (not multi-user production storage)
+- No real KYC / NBE licence
+- Data is per-browser localStorage (not multi-user sync)
 - Role switch is a demo convenience, not authentication
-- Fictional bank names and parties
-- Amharic covers key nav/labels only (not full i18n)
-
-## Product positioning (talking points)
-
-1. **Problem:** Informal trade and high-ticket services suffer from counterparty risk.
-2. **Model:** Conditional release; bank custody; platform orchestration + audit.
-3. **Sectors:** Real estate, e-commerce, scholarship agencies, travel, freelancers.
-4. **Compliance story:** Segregation, transparency for NBE, milestone evidence — *direction of travel*, not a live regulated product.

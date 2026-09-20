@@ -1,7 +1,9 @@
-import { notFound } from "next/navigation";
+"use client";
+
 import Link from "next/link";
-import { getDeal } from "@/lib/db";
-import { getCurrentRole } from "@/lib/actions";
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEscrow } from "@/lib/store";
 import { StatusChip } from "@/components/StatusChip";
 import { DealTimeline } from "@/components/DealTimeline";
 import { DealActions } from "@/components/DealActions";
@@ -9,14 +11,26 @@ import { formatEtb, formatDate } from "@/lib/format";
 import { getSector } from "@/lib/sectors";
 import { MapPin, Building, Users, Landmark } from "lucide-react";
 
-export default async function DealDetailPage({
-  params,
-}: {
-  params: { id: string };
-}) {
-  const deal = getDeal(params.id);
-  if (!deal) notFound();
-  const role = await getCurrentRole();
+function DealDetailInner() {
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id") || "";
+  const { getDeal, role } = useEscrow();
+  const deal = getDeal(id);
+
+  if (!deal) {
+    return (
+      <div className="card p-8 text-center space-y-3">
+        <h1 className="text-xl font-bold text-slate-900">Deal not found</h1>
+        <p className="text-sm text-slate-500">
+          No escrow with this id in local demo data. Try resetting from the Operator dashboard.
+        </p>
+        <Link href="/deals" className="btn-primary inline-flex">
+          ← All deals
+        </Link>
+      </div>
+    );
+  }
+
   const sector = getSector(deal.sector);
   const feeOnHeld = Math.round((deal.heldEtb * deal.feeBps) / 10000);
 
@@ -230,5 +244,13 @@ export default async function DealDetailPage({
         </div>
       </div>
     </div>
+  );
+}
+
+export default function DealViewPage() {
+  return (
+    <Suspense fallback={<div className="text-sm text-slate-500">Loading deal…</div>}>
+      <DealDetailInner />
+    </Suspense>
   );
 }

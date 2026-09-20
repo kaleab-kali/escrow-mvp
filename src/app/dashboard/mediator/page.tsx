@@ -1,12 +1,14 @@
-import { getDeals } from "@/lib/db";
+"use client";
+
+import Link from "next/link";
+import { useEscrow } from "@/lib/store";
 import { DashboardShell } from "@/components/DashboardShell";
 import { StatCard } from "@/components/StatCard";
 import { formatEtb, formatDate } from "@/lib/format";
-import Link from "next/link";
 import { StatusChip } from "@/components/StatusChip";
 
 export default function MediatorDashboard() {
-  const deals = getDeals();
+  const { deals } = useEscrow();
   const open = deals.filter((d) => d.dispute?.status === "open");
   const resolved = deals.filter((d) => d.dispute?.status === "resolved");
 
@@ -51,7 +53,7 @@ export default function MediatorDashboard() {
                   {d.dispute?.openedBy} · Held {formatEtb(d.heldEtb)}
                 </p>
               </div>
-              <Link href={`/deals/${d.id}`} className="btn-amber">
+              <Link href={`/deals/view?id=${d.id}`} className="btn-amber">
                 Mediate
               </Link>
             </div>
@@ -65,7 +67,7 @@ export default function MediatorDashboard() {
           <ul className="space-y-2 text-sm">
             {resolved.map((d) => (
               <li key={d.id} className="flex justify-between gap-2">
-                <Link href={`/deals/${d.id}`} className="text-[#0b3d2e]">
+                <Link href={`/deals/view?id=${d.id}`} className="text-[#0b3d2e]">
                   {d.title}
                 </Link>
                 <span className="text-slate-500 capitalize">

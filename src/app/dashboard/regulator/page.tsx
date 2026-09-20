@@ -1,13 +1,15 @@
-import { getDeals } from "@/lib/db";
+"use client";
+
+import Link from "next/link";
+import { useEscrow } from "@/lib/store";
 import { DashboardShell } from "@/components/DashboardShell";
 import { StatCard } from "@/components/StatCard";
 import { formatEtb, formatDate } from "@/lib/format";
 import { StatusChip } from "@/components/StatusChip";
-import Link from "next/link";
 import { getSector } from "@/lib/sectors";
 
 export default function RegulatorDashboard() {
-  const deals = getDeals();
+  const { deals } = useEscrow();
   const custody = deals.reduce((s, d) => s + d.heldEtb, 0);
   const banks = Array.from(new Set(deals.map((d) => d.bankName)));
 
@@ -74,7 +76,7 @@ export default function RegulatorDashboard() {
                 <tr key={d.id} className="border-b border-slate-50">
                   <td className="px-4 py-2">
                     <Link
-                      href={`/deals/${d.id}`}
+                      href={`/deals/view?id=${d.id}`}
                       className="font-mono text-xs text-[#0b3d2e]"
                     >
                       {d.reference}

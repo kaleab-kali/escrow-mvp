@@ -9,7 +9,7 @@ export function DealCard({ deal }: { deal: EscrowDeal }) {
   const sector = getSector(deal.sector);
   return (
     <Link
-      href={`/deals/${deal.id}`}
+      href={`/deals/view?id=${deal.id}`}
       className="card block p-5 hover:shadow-md hover:border-[#0b3d2e]/30 transition group"
     >
       <div className="flex items-start justify-between gap-3">

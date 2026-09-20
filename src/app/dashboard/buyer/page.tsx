@@ -1,16 +1,22 @@
-import { getDeals } from "@/lib/db";
+"use client";
+
+import Link from "next/link";
+import { useEscrow } from "@/lib/store";
 import { DashboardShell } from "@/components/DashboardShell";
 import { DealCard } from "@/components/DealCard";
 import { StatCard } from "@/components/StatCard";
 import { formatEtb } from "@/lib/format";
-import Link from "next/link";
 
 export default function BuyerDashboard() {
-  const deals = getDeals();
+  const { deals } = useEscrow();
   const mine = deals.filter((d) =>
-    ["pending_funding", "funded", "in_progress", "partially_released", "disputed"].includes(
-      d.status
-    )
+    [
+      "pending_funding",
+      "funded",
+      "in_progress",
+      "partially_released",
+      "disputed",
+    ].includes(d.status)
   );
   const held = deals.reduce((s, d) => s + d.heldEtb, 0);
 
@@ -18,14 +24,20 @@ export default function BuyerDashboard() {
     <DashboardShell role="buyer" subtitle="Track deposits, inspections, and releases.">
       <div className="grid sm:grid-cols-3 gap-3">
         <StatCard label="Your open deals" value={String(mine.length)} />
-        <StatCard label="Funds in escrow" value={formatEtb(held)} hint="Protected until conditions met" />
+        <StatCard
+          label="Funds in escrow"
+          value={formatEtb(held)}
+          hint="Protected until conditions met"
+        />
         <StatCard
           label="Action needed"
           value={String(
             deals.filter(
               (d) =>
                 d.status === "pending_funding" ||
-                d.milestones.some((m) => m.status === "submitted" && d.sector !== "real_estate")
+                d.milestones.some(
+                  (m) => m.status === "submitted" && d.sector !== "real_estate"
+                )
             ).length
           )}
         />

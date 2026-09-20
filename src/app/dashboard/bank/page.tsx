@@ -1,12 +1,14 @@
-import { getDeals } from "@/lib/db";
+"use client";
+
+import Link from "next/link";
+import { useEscrow } from "@/lib/store";
 import { DashboardShell } from "@/components/DashboardShell";
 import { DealCard } from "@/components/DealCard";
 import { StatCard } from "@/components/StatCard";
 import { formatEtb, formatDate } from "@/lib/format";
-import Link from "next/link";
 
 export default function BankDashboard() {
-  const deals = getDeals();
+  const { deals } = useEscrow();
   const custody = deals.reduce((s, d) => s + d.heldEtb, 0);
   const released = deals.reduce((s, d) => s + d.releasedEtb, 0);
   const pendingRelease = deals.flatMap((d) =>
@@ -58,7 +60,7 @@ export default function BankDashboard() {
                   {milestone.title} — {formatEtb(milestone.amountEtb)}
                 </span>
                 <Link
-                  href={`/deals/${deal.id}`}
+                  href={`/deals/view?id=${deal.id}`}
                   className="font-semibold text-[#0b3d2e]"
                 >
                   Execute →
@@ -90,7 +92,7 @@ export default function BankDashboard() {
                   </td>
                   <td className="py-2 pr-2">
                     <Link
-                      href={`/deals/${e.dealId}`}
+                      href={`/deals/view?id=${e.dealId}`}
                       className="font-mono text-xs text-[#0b3d2e]"
                     >
                       {e.dealRef}
